@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Probador de API - Sistema Nutricional</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .content {
+            padding: 30px;
+        }
+        .endpoint-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 2px solid #ecf0f1;
+            border-radius: 10px;
+            background: #f8f9fa;
+        }
+        .endpoint-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .endpoint-description {
+            color: #7f8c8d;
+            margin-bottom: 15px;
+        }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        .constructor { background: #27ae60; }
+        .constructor:hover { background: #229954; }
+        .autowired { background: #f39c12; }
+        .autowired:hover { background: #e67e22; }
+        .setter { background: #e74c3c; }
+        .setter:hover { background: #c0392b; }
+        .compare { background: #9b59b6; }
+        .compare:hover { background: #8e44ad; }
+        .response {
+            margin-top: 15px;
+            padding: 15px;
+            background: #ecf0f1;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .loading {
+            color: #f39c12;
+            font-weight: bold;
+        }
+        .error {
+            border-left-color: #e74c3c;
+            color: #c0392b;
+        }
+        .success {
+            border-left-color: #27ae60;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            padding: 20px;
+            background: #3498db;
+            color: white;
+            border-radius: 10px;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 Probador de API - Sistema Nutricional</h1>
+            <p>Demonstración de los 3 Patrones de Inyección de Dependencias en Spring Boot</p>
+        </div>
+        
+        <div class="content">
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="totalRequests">0</div>
+                    <div class="stat-label">Peticiones Realizadas</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="successRequests">0</div>
+                    <div class="stat-label">Exitosas</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="errorRequests">0</div>
+                    <div class="stat-label">Con Error</div>
+                </div>
+            </div>
+
+            <div class="endpoint-section">
+                <div class="endpoint-title">📊 Obtener Mediciones por Tipo de Inyección</div>
+                <div class="endpoint-description">
+                    Compara los mismos datos obtenidos através de los 3 patrones de inyección de dependencias:
+                </div>
+                <button class="constructor" onclick="testEndpoint('/api/mediciones/constructor', 'constructor-response')">
+                    🏗️ Constructor Injection
+                </button>
+                <button class="autowired" onclick="testEndpoint('/api/mediciones/autowired', 'autowired-response')">
+                    ⚡ @Autowired Field
+                </button>
+                <button class="setter" onclick="testEndpoint('/api/mediciones/setter', 'setter-response')">
+                    🔧 Setter Injection
+                </button>
+                <div id="constructor-response" class="response" style="display: none;"></div>
+                <div id="autowired-response" class="response" style="display: none;"></div>
+                <div id="setter-response" class="response" style="display: none;"></div>
+            </div>
+
+            <div class="endpoint-section">
+                <div class="endpoint-title">🔍 Comparación Directa de Servicios</div>
+                <div class="endpoint-description">
+                    Obtiene la misma medición usando los 3 servicios simultáneamente para demostrar que todos funcionan igual:
+                </div>
+                <button class="compare" onclick="testEndpoint('/api/mediciones/compare/1', 'compare-response')">
+                    🆚 Comparar Servicios (Medición #1)
+                </button>
+                <button class="compare" onclick="testEndpoint('/api/mediciones/compare/2', 'compare2-response')">
+                    🆚 Comparar Servicios (Medición #2)
+                </button>
+                <div id="compare-response" class="response" style="display: none;"></div>
+                <div id="compare2-response" class="response" style="display: none;"></div>
+            </div>
+
+            <div class="endpoint-section">
+                <div class="endpoint-title">📋 Operaciones CRUD Individuales</div>
+                <div class="endpoint-description">
+                    Obtener mediciones específicas por ID:
+                </div>
+                <button onclick="testEndpoint('/api/mediciones/1', 'medicion1-response')">
+                    📊 Medición #1
+                </button>
+                <button onclick="testEndpoint('/api/mediciones/2', 'medicion2-response')">
+                    📊 Medición #2
+                </button>
+                <button onclick="testEndpoint('/api/mediciones/99', 'medicion404-response')">
+                    ❌ Medición Inexistente
+                </button>
+                <div id="medicion1-response" class="response" style="display: none;"></div>
+                <div id="medicion2-response" class="response" style="display: none;"></div>
+                <div id="medicion404-response" class="response" style="display: none;"></div>
+            </div>
+
+            <div class="endpoint-section">
+                <div class="endpoint-title">➕ Crear Nueva Medición</div>
+                <div class="endpoint-description">
+                    Crear una nueva medición usando el servicio con inyección por constructor:
+                </div>
+                <button onclick="createMedicion()">
+                    ✨ Crear Medición de Prueba
+                </button>
+                <div id="create-response" class="response" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let totalRequests = 0;
+        let successRequests = 0;
+        let errorRequests = 0;
+
+        function updateStats() {
+            document.getElementById('totalRequests').textContent = totalRequests;
+            document.getElementById('successRequests').textContent = successRequests;
+            document.getElementById('errorRequests').textContent = errorRequests;
+        }
+
+        async function testEndpoint(endpoint, responseId) {
+            const responseDiv = document.getElementById(responseId);
+            responseDiv.style.display = 'block';
+            responseDiv.className = 'response loading';
+            responseDiv.textContent = 'Cargando...';
+            
+            totalRequests++;
+            updateStats();
+
+            try {
+                const response = await fetch(`http://localhost:8080${endpoint}`);
+                const data = await response.json();
+                
+                responseDiv.className = response.ok ? 'response success' : 'response error';
+                responseDiv.textContent = JSON.stringify(data, null, 2);
+                
+                if (response.ok) {
+                    successRequests++;
+                } else {
+                    errorRequests++;
+                }
+            } catch (error) {
+                responseDiv.className = 'response error';
+                responseDiv.textContent = `Error: ${error.message}`;
+                errorRequests++;
+            }
+            
+            updateStats();
+        }
+
+        async function createMedicion() {
+            const responseDiv = document.getElementById('create-response');
+            responseDiv.style.display = 'block';
+            responseDiv.className = 'response loading';
+            responseDiv.textContent = 'Creando nueva medición...';
+            
+            totalRequests++;
+            updateStats();
+
+            const newMedicion = {
+                peso: 75.5,
+                altura: 168.0,
+                circunferenciaCintura: 80.0,
+                circunferenciaCadera: 95.0,
+                porcentajeGrasaCorporal: 20.5
+            };
+
+            try {
+                const response = await fetch('http://localhost:8080/api/mediciones/constructor/paciente/1/nutricionista/1', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(newMedicion)
+                });
+                
+                const data = await response.json();
+                
+                responseDiv.className = response.ok ? 'response success' : 'response error';
+                responseDiv.textContent = JSON.stringify(data, null, 2);
+                
+                if (response.ok) {
+                    successRequests++;
+                } else {
+                    errorRequests++;
+                }
+            } catch (error) {
+                responseDiv.className = 'response error';
+                responseDiv.textContent = `Error: ${error.message}`;
+                errorRequests++;
+            }
+            
+            updateStats();
+        }
+    </script>
+</body>
+</html>
